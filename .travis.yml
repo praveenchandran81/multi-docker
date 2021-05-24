@@ -1,0 +1,26 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t praveenchandran/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run praveenchandran/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t praveenchandran/multi-client ./client
+  - docker build -t praveenchandran/multi-nginx ./nginx
+  - docker build -t praveenchandran/multi-server ./server
+  - docker build -t praveenchandran/multi-worker ./worker
+
+# login to docker hub. Before doing this, goto travis cli and click on the correct repository and take the
+# settings. then add the docker id and docker password as environment variables.
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+
+# push the images to docker hub
+  - docker push praveenchandran/multi-client
+  - docker push praveenchandran/multi-nginx
+  - docker push praveenchandran/multi-server
+  - docker push praveenchandran/multi-worker
